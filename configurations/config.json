@@ -1,0 +1,7 @@
+{
+    "columns_to_drop": ["Open", "High", "Low", "Dividends", "Stock Splits"],
+    "columns_to_rename": {
+        "Close": "price",
+        "Volume": "volume"
+    }
+}
