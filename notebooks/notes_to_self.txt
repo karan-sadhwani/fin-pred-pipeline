@@ -1,0 +1,14 @@
+Day trading - 15/30 min for trend, 1/5min for timing. intra-day volatility/volume important here - invest in the morning just after market settles from overnight, or before market closes
+Swing trading - days, weeks, but use hours for fine-tuning entry and exithigh volumes in peak trading hours lead to lower spreads and more volatility (which gives you better chance of covering cost)
+Factors: 
+Modelling: model,features,hyper parameters
+Data: intervals, history
+Timing of entry / exit: volatility
+
+
+To do:
+logistic with just lags
+dnn with just lags
+log with lags + technical
+dnn + technical
+think through optimisation per above and that lecture on optimisation

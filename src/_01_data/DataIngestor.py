@@ -18,6 +18,7 @@ class DataIngestor():
         rep = "DataIngestor(ticker = {}, start = {}, end = {}, interval = {})"
         return rep.format(self._ticker, self.start, self.end, self.interval)
 
+
     def get_data(self):
         ''' retrieves and prepares the data
         '''
@@ -26,15 +27,6 @@ class DataIngestor():
         data.index.name = "date"
         self.data = data
     
-    def apply_config(self, config_path=None):
-        with open(config_path, 'r') as config_file:
-            config = json.load(config_file)
-            self.clean_columns(config.get('columns_to_drop'), config.get('columns_to_rename'))
-
-    def clean_columns(self, columns_to_drop=None, columns_to_rename=None):
-        if columns_to_drop:
-            self.data.drop(columns=columns_to_drop, inplace=True)
-        if columns_to_rename:
-            self.data.rename(columns=columns_to_rename, inplace=True)
-    
-   
+    def adjust_columns(self, column_mapping):
+        self.data.drop(columns=column_mapping["columns_to_drop"], inplace=True)
+        self.data.rename(columns=column_mapping["columns_to_rename"], inplace=True)
