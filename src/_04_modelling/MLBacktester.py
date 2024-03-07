@@ -1,18 +1,17 @@
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_auc_score
 import matplotlib.pyplot as plt
+from sklearn.metrics import roc_auc_score
 
 class MLBacktester():
     ''' Class for the vectorized backtesting of Machine Learning-based classification.
     '''
-    def __init__(self, train_df, test_df, feature_columns, target):
+    def __init__(self, model, train_df, test_df, feature_columns, target):
         self.train_df = train_df
         self.test_df = test_df
         self.feature_columns = feature_columns
         self.target = target
-        self.model = LogisticRegression(C = 1e6, max_iter = 100000, multi_class = "ovr")
+        self.model = model
 
     def __repr__(self):
         rep = "MLBacktester(feature_columns  = {}, model = {})"
@@ -40,52 +39,47 @@ class MLBacktester():
 
         df["pred"] = self.predict
       
+        TP = sum((df[self.target] == 1) & (df["pred"] == 1))
+        # Note FP also known as Type I error
+        FP = sum((df[self.target] != 1) & (df["pred"] == 1))
+        TN = sum((df[self.target] == -1) & (df["pred"] == -1))
+        # Note FP also known as Type II error
+        FN = sum((df[self.target] != -1) & (df["pred"] == -1))
+
         # Calculate accuracy
-        accuracy = accuracy_score(df[self.target], self.predict)
+        accuracy = (TP + TN) / len(df[self.target])
         print("Accuracy Score:", accuracy)
-
-        # Calculate precision, recall, and F1-score
+        # Precision, proportion of true positive predictions out of all positive predictions made by the model.
+        # ability to make correct positive predictions and avoid false alarms
+        precision = TP / (TP + FP)
+        # Recall: Recall measures the proportion of true positive predictions out of all actual positive instances in the data.
+        # ability to capture all positive instances
+        recall= TP / (TP + FN)
+        # F1-score: The F1-score is the harmonic mean of precision and recall. It provides a single metric that balances both precision and recall.
+        # considers both false positives and false negatives, making it useful when there's an uneven class distribution
+        f1 = 2 * (precision * recall) / (precision + recall)
        
-        # precision = precision_score(df[self.target], self.predict)
-        # recall = recall_score(df[self.target], self.predict)
-        # f1 = f1_score(df[self.target], self.predict)
-        # print("Precision Score:", precision)
-        # print("Recall Score:", recall)
-        # print("F1 Score:", f1)
+        print("Precision Score:", precision)
+        print("Recall Score:", recall)
+        print("F1 Score:", f1)
 
-        # # Calculate AUC
-        # auc = roc_auc_score(self.df[self.target], self.predict)
-        # print("AUC Score:", auc)
+        # Calculate AUC
+        y_true_binary = [(1 if label == 1 else 0) for label in df[self.target].tolist()]
+        y_score = [(1 if pred == 1 else 0) for pred in df["pred"].tolist()]
+        auc = roc_auc_score(y_true_binary, y_score)
+        print("AUC Score:", auc)
 
         # # Confusion matrix
-        # print("Confusion Matrix:")
-        # print(confusion_matrix(df[self.target], self.predict))
+        conf_matrix = np.array([[TP, FP], [FN, TN]])
+        labels = np.array([['TP', 'FP'],
+                       ['FN', 'TN']])
+    
+        print("Confusion Matrix:")
+        for i in range(conf_matrix.shape[0]):
+            for j in range(conf_matrix.shape[1]):
+                print(f"{conf_matrix[i][j]:<5}", end="")
+                print(f"({labels[i][j]})", end=" ")
+            print()
 
-        ''' Checks the performance of the trading strategy and compares to "buy and hold".
-        '''
-        # # calculate Strategy Returns
-        # self.test_df["strategy"] = self.test_df["pred"] * self.test_df["log_returns"]
-        # # determine the number of trades in each bar
-        # self.test_df["trades"] = self.test_df["pred"].diff().fillna(0).abs()
-        
-        # # subtract transaction/trading costs from pre-cost return
-        # self.test_df.strategy = self.test_df.strategy - self.test_df.trades * self.tc
-        
-        # # calculate cumulative returns for strategy & buy and hold
-        # self.test_df["creturns"] = self.test_df["log_returns"].cumsum().apply(np.exp)
-        # self.test_df["cstrategy"] = self.test_df['strategy'].cumsum().apply(np.exp)
-        # self.results = self.test_df
-        
-        # perf = self.results["cstrategy"].iloc[-1] # absolute performance of the strategy
-        # outperf = perf - self.results["creturns"].iloc[-1] # out-/underperformance of strategy
-        # print(perf, outperf)
-        # return round(perf, 6), round(outperf, 6)
-        
-    def plot_results(self):
-        ''' Plots the performance of the trading strategy and compares to "buy and hold".
-        '''
-        if self.results is None:
-            print("Run test_strategy() first.")
-        else:
-            title = "Logistic Regression: | TC = {}".format(self.tc)
-            self.results[["creturns", "cstrategy"]].plot(title=title, figsize=(12, 8))
+
+

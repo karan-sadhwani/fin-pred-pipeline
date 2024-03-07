@@ -1,0 +1,28 @@
+        ''' Checks the performance of the trading strategy and compares to "buy and hold".
+        '''
+        # # calculate Strategy Returns
+        # self.test_df["strategy"] = self.test_df["pred"] * self.test_df["log_returns"]
+        # # determine the number of trades in each bar
+        # self.test_df["trades"] = self.test_df["pred"].diff().fillna(0).abs()
+        
+        # # subtract transaction/trading costs from pre-cost return
+        # self.test_df.strategy = self.test_df.strategy - self.test_df.trades * self.tc
+        
+        # # calculate cumulative returns for strategy & buy and hold
+        # self.test_df["creturns"] = self.test_df["log_returns"].cumsum().apply(np.exp)
+        # self.test_df["cstrategy"] = self.test_df['strategy'].cumsum().apply(np.exp)
+        # self.results = self.test_df
+        
+        # perf = self.results["cstrategy"].iloc[-1] # absolute performance of the strategy
+        # outperf = perf - self.results["creturns"].iloc[-1] # out-/underperformance of strategy
+        # print(perf, outperf)
+        # return round(perf, 6), round(outperf, 6)
+        
+    def plot_results(self):
+        ''' Plots the performance of the trading strategy and compares to "buy and hold".
+        '''
+        if self.results is None:
+            print("Run test_strategy() first.")
+        else:
+            title = "Logistic Regression: | TC = {}".format(self.tc)
+            self.results[["creturns", "cstrategy"]].plot(title=title, figsize=(12, 8))
