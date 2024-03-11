@@ -2,28 +2,44 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score
+from .NeuralNetworkModel import NeuralNetworkModel
+from .LogisticRegressionModel import LogisticRegressionModel
 
 class MLBacktester():
     ''' Class for the vectorized backtesting of Machine Learning-based classification.
     '''
-    def __init__(self, model, train_df, test_df, feature_columns, target):
+    def __init__(self, train_df, test_df, feature_columns, target, model_type, **model_params):
+        self.model_type = model_type
         self.train_df = train_df
         self.test_df = test_df
         self.feature_columns = feature_columns
         self.target = target
-        self.model = model
+        self.model = self.initialise_model(**model_params)
+      
+
 
     def __repr__(self):
         rep = "MLBacktester(feature_columns  = {}, model = {})"
-        return rep.format(self.feature_columns, self.model)
+        return rep.format(self.feature_columns, self.model_type)
+    
+    def initialise_model(self, **model_params):
+        if self.model_type == "neural_network":
+            return NeuralNetworkModel(input_dim = len(self.feature_columns), **model_params)
+        elif self.model_type == "logistic_regression":
+            return LogisticRegressionModel(**model_params)
+        else:
+            print("Error: model type not recognised")
+           
         
-    def fit_model(self):
+    def fit_model(self, **train_params):
         ''' Fitting the ML Model.
         '''
-        # direction is actually the dependent variable (up or down 1 or)
-        self.model.fit(self.train_df[self.feature_columns], self.train_df[self.target])
+        if hasattr(self.model, 'fit'):
+            self.model.fit(self.train_df[self.feature_columns], self.train_df[self.target], **train_params)
+        else:
+            raise NotImplementedError("The model does not have a 'fit' method.")
 
-    def make_predictions(self, df=None):
+    def apply_model(self, df=None):
         '''  Evaluates model on train or test set.
         '''
         if df is None:
@@ -31,7 +47,7 @@ class MLBacktester():
             
         self.predict = self.model.predict(df[self.feature_columns])
         
-    def evaluate_results(self, df=None, tc=None):
+    def score_model(self, df=None, tc=None):
         ''' Checks the performance of the trading strategy and compares to "buy and hold".
         '''
         if df is None:

@@ -72,5 +72,21 @@ class FeatureEngineer():
         return df
             
     
+    def technical_indicators(self, df, variable, window=50):
+
+        technical_indicators_features = ["sma", "boll", "min", "max", "mom", "vol"]
+
+        df["sma"] = df[variable].rolling(window).mean() - df[variable].rolling(150).mean()
+        df["boll"] = (df[variable] - df[variable].rolling(window).mean()) / df[variable].rolling(window).std()
+        df["min"] = df[variable].rolling(window).min() / df[variable] - 1
+        df["max"] = df[variable].rolling(window).max() / df[variable] - 1
+        df["mom"] = df["log_returns"].rolling(3).mean()
+        df["vol"] = df["log_returns"].rolling(window).std()
+
+        self.feature_columns.extend(technical_indicators_features)
+    
+        return df
+
+        
 
         
